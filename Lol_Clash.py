@@ -1,4 +1,5 @@
 """Analyze summoners for clash scouting phase."""
+from collections import Counter
 import json
 
 import requests
@@ -149,26 +150,16 @@ game_ids
 
 # Most recent 10 played Clash games
 # roles kind of inaccurate, might be best to just look at last 10 champs and role currently queued
-roles, lanes = [], []
-for i in range(0, 10):                # fix if range cant reach 10
-    role = clash_hist[i]['role']
-    roles.append(role)
-    lane = clash_hist[i]['lane']
-    lanes.append(lane)
+roles = Counter(match["role"] for match in clash_hist)
+lanes = Counter(match["lane"] for match in clash_hist)
+
+print(f"Last 10 Clash games played for {summoner_name}:")
+print(f"Top: {lanes.get('TOP', 0)}")
+print(f"Jungle: {lanes.get('JUNGLE', 0)}")
+print(f"Mid: {lanes.get('MID', 0)}")
+print(f"ADC: {roles.get('DUO_CARRY', 0)}")
+print(f"Support: {roles.get('DUO_SUPPORT', 0)}")
     
-num_supp = roles.count('DUO_SUPPORT')
-num_adc = roles.count('DUO_CARRY')
-num_mid = lanes.count('MID')
-num_jung = lanes.count('JUNGLE')
-num_top = lanes.count('TOP')
-
-print(f'Last 10 Clash games played for {summoner_name}:')
-print(f'Top: {num_top}')
-print(f'Jungle: {num_jung}')
-print(f'Mid": {num_mid}')
-print(f'ADC: {num_adc}')
-print(f'Support: {num_supp}')
-
 ####################### SPECIFIC MATCH DETAILS ####################
 game_id = 3665709273
 
