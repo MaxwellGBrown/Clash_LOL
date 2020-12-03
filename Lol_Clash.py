@@ -1,4 +1,8 @@
+"""Analyze summoners for clash scouting phase."""
+import json
+
 import requests
+
 requests.get('https://na1.api.riotgames.com/lol/status/v3/shard-data?api_key=RGAPI-9edf8094-671f-4360-9f9a-ed388495c6e5')
 
 # Change these as needed
@@ -172,31 +176,16 @@ r4 = requests.get(f'https://na1.api.riotgames.com/lol/match/v4/matches/{game_id}
 r4.json()
 
 # Accumulating stats into a list
-names, kills, deaths, assists, wins, champs = [],[],[],[],[],[]
+game_details = r4.json()
+stats = []
+for index in range(10):
+    stats.append({
+        "name": game_details['participantIdentities'][index]['player']['summonerName'],
+        "kill": game_details['participants'][index]['stats']['kills'],
+        "death": game_details['participants'][index]['stats']['deaths'],
+        "assist": game_details['participants'][index]['stats']['assists'],
+        "win": game_details['participants'][index]['stats']['win'],
+        "champ": game_details['participants'][index]['championId'],
+    })
 
-for i in range(0,10):
-    name = r4.json()['participantIdentities'][i]['player']['summonerName']
-    kill = r4.json()['participants'][i]['stats']['kills']
-    death = r4.json()['participants'][i]['stats']['deaths']
-    assist = r4.json()['participants'][i]['stats']['assists']
-    win = r4.json()['participants'][i]['stats']['win']
-    champ = r4.json()['participants'][i]['championId']
-    names.append(name)
-    kills.append(kill)
-    deaths.append(death)
-    assists.append(assist)
-    wins.append(win)
-    champs.append(champ)
-    
-#Formating stats into list full of dictionaries
-# this is the list of dictonaries for 1 match history, I want to create a giant list for each game_id (saved in the list 'game_ids')
-# then access the champ, win, kills, deaths, assists in each dictionary for a specific summoner name
-
-clash_stat = [{'name': name, 
-               'champ': champ, 
-               'win': win, 
-               'kills':kill, 
-               'deaths': death, 
-               'assists': assist}
-              
-for name,champ,win,kill,death,assist in zip(names,champs,wins,kills,deaths,assists)]
+print(json.dumps(stats, indent=2))
