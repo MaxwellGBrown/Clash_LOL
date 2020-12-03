@@ -4,6 +4,14 @@ import json
 
 import requests
 
+
+def count_roles(matches):
+    """Counts the roles played in provided matches."""
+    roles = Counter(match["role"] for match in matches)
+    lanes = Counter(match["lane"] for match in matches)
+    return {**roles, **lanes}
+
+
 requests.get('https://na1.api.riotgames.com/lol/status/v3/shard-data?api_key=RGAPI-9edf8094-671f-4360-9f9a-ed388495c6e5')
 
 # Change these as needed
@@ -50,26 +58,15 @@ print(f'Flex: {flex_rank} {flex_win_pct}%')
 r2 = requests.get(f'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{account_id}?api_key={api_key}')
 
 # Get amount of games played in each role for past 100 games (includes ARAM / very inaccurate)
-roles, lanes = [], []
+matches = r2.json()["matches"]
+roles_tally = count_roles(matches)
 
-for i in range(0,100):
-    role = r2.json()['matches'][i]['role']
-    roles.append(role)
-    lane = r2.json()['matches'][i]['lane']
-    lanes.append(lane)
-    
-num_supp = roles.count('DUO_SUPPORT')
-num_adc = roles.count('DUO')
-num_mid = lanes.count('MID')
-num_jung = lanes.count('JUNGLE')
-lanes.count('BOTTOM')
-num_top = lanes.count('TOP')
-
-pct_supp = round(num_supp / len(lanes) * 100,2)
-pct_adc = round(num_adc / len(lanes) * 100,2)
-pct_mid = round(num_mid / len(lanes) * 100,2)
-pct_jung = round(num_jung / len(lanes) * 100,2)
-pct_top = round(num_top / len(lanes) * 100,2)
+# TODO String formatting for percentages, because we enjoy fun
+pct_supp = round(roles_tally.get("SUPPORT", 0) / len(matches) * 100,2)
+pct_adc = round(roles_tally.get("ADC", 0) / len(matches) * 100,2)
+pct_mid = round(roles_tally.get("MID", 0) / len(matches) * 100,2)
+pct_jung = round(roles_tally.get("JUNGLE", 0) / len(matches) * 100,2)
+pct_top = round(roles_tally.get("SUPPORT", 0) / len(matches) * 100,2)
 
 print('Percentage of games played by role in past 100 (including ARAM):')
 print(f'Top: {pct_top}')
@@ -89,26 +86,14 @@ clash_games = [g for g in response['matches'] if g['queue']==700]    # isn't nee
 r5 = requests.get(f'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{account_id}?queue=700&queue=400&queue=420&queue=430&api_key={api_key}')
 not_aram_games = r5.json()['matches']
 # Get amount of games played per role (no ARAM)
-roles, lanes = [], []
-for i in range(0,i):
-    role = not_aram_games[i]['role']
-    roles.append(role)
-    lane = not_aram_games[i]['lane']
-    lanes.append(lane)
+roles_tally = count_roles(not_aram_games)
 
-# these are named the same as previously, probably bad as is, but ok if they're all defined in a function
-num_supp = roles.count('DUO_SUPPORT')
-num_adc = roles.count('DUO')
-num_mid = lanes.count('MID')
-num_jung = lanes.count('JUNGLE')
-num_bot = lanes.count('BOTTOM')
-num_top = lanes.count('TOP')
-
-pct_supp = round(num_supp / len(lanes) * 100,2)
-pct_adc = round(num_adc / len(lanes) * 100,2)
-pct_mid = round(num_mid / len(lanes) * 100,2)
-pct_jung = round(num_jung / len(lanes) * 100,2)
-pct_top = round(num_top / len(lanes) * 100,2)
+# TODO String formatting for percentages, because we enjoy fun
+pct_supp = round(roles_tally.get("DUO_SUPPORT", 0) / len(not_aram_games) * 100,2)
+pct_adc = round(roles_tally.get("DUO", 0) / len(not_aram_games) * 100,2)
+pct_mid = round(roles_tally.get("MID", 0) / len(not_aram_games) * 100,2)
+pct_jung = round(roles_tally.get("JUNGLE", 0) / len(not_aram_games) * 100,2)
+pct_top = round(roles_tally.get("TOP", 0) / len(not_aram_games) * 100,2)
 
 print('Percentage of games played by role in past 100 (not ARAM):')
 print(f'Top: {pct_top}')
@@ -131,34 +116,14 @@ clash_hist[0]
 length = len(clash_hist)
 roles, lanes, game_ids = [], [], []
 
-for i in range(length):
-    role = clash_hist[i]['role']
-    roles.append(role)
-    lane = clash_hist[i]['lane']
-    lanes.append(lane)
-    game_id = clash_hist[i]['gameId']
-    game_ids.append(game_id)
-    
-num_supp = roles.count('DUO_SUPPORT')
-num_adc = roles.count('DUO_CARRY')
-num_mid = lanes.count('MID')
-num_jung = lanes.count('JUNGLE')
-num_top = lanes.count('TOP')
-
-#list of game_ids for all clash games played
-game_ids
-
-# Most recent 10 played Clash games
-# roles kind of inaccurate, might be best to just look at last 10 champs and role currently queued
-roles = Counter(match["role"] for match in clash_hist)
-lanes = Counter(match["lane"] for match in clash_hist)
+roles_tally = count_roles(clash_hist)
 
 print(f"Last 10 Clash games played for {summoner_name}:")
-print(f"Top: {lanes.get('TOP', 0)}")
-print(f"Jungle: {lanes.get('JUNGLE', 0)}")
-print(f"Mid: {lanes.get('MID', 0)}")
-print(f"ADC: {roles.get('DUO_CARRY', 0)}")
-print(f"Support: {roles.get('DUO_SUPPORT', 0)}")
+print(f"Top: {roles_tally.get('TOP', 0)}")
+print(f"Jungle: {roles_tally.get('JUNGLE', 0)}")
+print(f"Mid: {roles_tally.get('MID', 0)}")
+print(f"ADC: {roles_tally.get('DUO_CARRY', 0)}")
+print(f"Support: {roles_tally.get('DUO_SUPPORT', 0)}")
     
 ####################### SPECIFIC MATCH DETAILS ####################
 game_id = 3665709273
