@@ -5,14 +5,28 @@ import json
 import requests
 
 
+def standardize_roles(matches):
+    """Standardize bot lane roles/lanes into one value."""
+    for match in matches:
+        # print("lane: {lane}, role: {role}".format(**match))
+        if match["lane"] == "NONE" or match["lane"] == "BOTTOM":
+            if match["role"] in ["DUO_CARRY", "SOLO", "DUO"]:
+                yield "ADC"
+            elif match["role"] == "DUO_SUPPORT":
+                yield "SUPPORT"
+            else:
+                print("Couldn't determine role for match {gameId} -"
+                      " lane: {lane}, role: {role}".format(**match))
+                yield match["role"]
+        else:
+            yield match["lane"]
+
+
 def count_roles(matches):
     """Counts the roles played in provided matches."""
-    roles = Counter(match["role"] for match in matches)
-    lanes = Counter(match["lane"] for match in matches)
-
+    roles = Counter(standardize_roles(matches))
     all_counts = defaultdict(lambda: 0)  # if there's no count of anything return 0
     all_counts.update(roles)
-    all_counts.update(lanes)
     return all_counts
 
 
@@ -22,8 +36,8 @@ def role_percentages_string(roles_tally):
         "Top": "TOP",
         "Mid": "MID",
         "Jungle": "JUNGLE",
-        "ADC": "DUO",  # or is it ADC?
-        "Support": "DUO_SUPPORT",  # or is it SUPPORT?
+        "ADC": "ADC",  # adjusted to match standardize_roles() output
+        "Support": "SUPPORT",  # adjusted to match standardize_roles() output
     } 
 
     total_matches = sum(roles_tally.values())
