@@ -1,5 +1,5 @@
 """Analyze summoners for clash scouting phase."""
-from collections import Counter
+from collections import Counter, defaultdict
 import json
 
 import requests
@@ -9,7 +9,11 @@ def count_roles(matches):
     """Counts the roles played in provided matches."""
     roles = Counter(match["role"] for match in matches)
     lanes = Counter(match["lane"] for match in matches)
-    return {**roles, **lanes}
+
+    all_counts = defaultdict(lambda: 0)  # if there's no count of anything return 0
+    all_counts.update(roles)
+    all_counts.update(lanes)
+    return all_counts
 
 
 requests.get('https://na1.api.riotgames.com/lol/status/v3/shard-data?api_key=RGAPI-9edf8094-671f-4360-9f9a-ed388495c6e5')
@@ -62,11 +66,11 @@ matches = r2.json()["matches"]
 roles_tally = count_roles(matches)
 
 # TODO String formatting for percentages, because we enjoy fun
-pct_supp = round(roles_tally.get("SUPPORT", 0) / len(matches) * 100,2)
-pct_adc = round(roles_tally.get("ADC", 0) / len(matches) * 100,2)
-pct_mid = round(roles_tally.get("MID", 0) / len(matches) * 100,2)
-pct_jung = round(roles_tally.get("JUNGLE", 0) / len(matches) * 100,2)
-pct_top = round(roles_tally.get("SUPPORT", 0) / len(matches) * 100,2)
+pct_supp = round(roles_tally["SUPPORT"] / len(matches) * 100,2)
+pct_adc = round(roles_tally["ADC"] / len(matches) * 100,2)
+pct_mid = round(roles_tally["MID"] / len(matches) * 100,2)
+pct_jung = round(roles_tally["JUNGLE"] / len(matches) * 100,2)
+pct_top = round(roles_tally["SUPPORT"] / len(matches) * 100,2)
 
 print('Percentage of games played by role in past 100 (including ARAM):')
 print(f'Top: {pct_top}')
@@ -89,11 +93,11 @@ not_aram_games = r5.json()['matches']
 roles_tally = count_roles(not_aram_games)
 
 # TODO String formatting for percentages, because we enjoy fun
-pct_supp = round(roles_tally.get("DUO_SUPPORT", 0) / len(not_aram_games) * 100,2)
-pct_adc = round(roles_tally.get("DUO", 0) / len(not_aram_games) * 100,2)
-pct_mid = round(roles_tally.get("MID", 0) / len(not_aram_games) * 100,2)
-pct_jung = round(roles_tally.get("JUNGLE", 0) / len(not_aram_games) * 100,2)
-pct_top = round(roles_tally.get("TOP", 0) / len(not_aram_games) * 100,2)
+pct_supp = round(roles_tally["DUO_SUPPORT"] / len(not_aram_games) * 100,2)
+pct_adc = round(roles_tally["DUO"] / len(not_aram_games) * 100,2)
+pct_mid = round(roles_tally["MID"] / len(not_aram_games) * 100,2)
+pct_jung = round(roles_tally["JUNGLE"] / len(not_aram_games) * 100,2)
+pct_top = round(roles_tally["TOP"] / len(not_aram_games) * 100,2)
 
 print('Percentage of games played by role in past 100 (not ARAM):')
 print(f'Top: {pct_top}')
@@ -119,11 +123,11 @@ roles, lanes, game_ids = [], [], []
 roles_tally = count_roles(clash_hist)
 
 print(f"Last 10 Clash games played for {summoner_name}:")
-print(f"Top: {roles_tally.get('TOP', 0)}")
-print(f"Jungle: {roles_tally.get('JUNGLE', 0)}")
-print(f"Mid: {roles_tally.get('MID', 0)}")
-print(f"ADC: {roles_tally.get('DUO_CARRY', 0)}")
-print(f"Support: {roles_tally.get('DUO_SUPPORT', 0)}")
+print(f"Top: {roles_tally['TOP']}")
+print(f"Jungle: {roles_tally['JUNGLE']}")
+print(f"Mid: {roles_tally['MID']}")
+print(f"ADC: {roles_tally['DUO_CARRY']}")
+print(f"Support: {roles_tally['DUO_SUPPORT']}")
     
 ####################### SPECIFIC MATCH DETAILS ####################
 game_id = 3665709273
