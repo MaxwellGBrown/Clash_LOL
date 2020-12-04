@@ -16,6 +16,26 @@ def count_roles(matches):
     return all_counts
 
 
+def role_percentages_string(roles_tally):
+    """Return a string that outlines role history in percentages."""
+    role_keys = {
+        "Top": "TOP",
+        "Mid": "MID",
+        "Jungle": "JUNGLE",
+        "ADC": "DUO",  # or is it ADC?
+        "Support": "DUO_SUPPORT",  # or is it SUPPORT?
+    } 
+
+    total_matches = sum(roles_tally.values())
+
+    output = []
+    for title, key in role_keys.items():
+        percentage = roles_tally[key] / total_matches
+        output.append(f"{title}: {percentage:.2%}")
+
+    return "\n".join(output)
+
+
 requests.get('https://na1.api.riotgames.com/lol/status/v3/shard-data?api_key=RGAPI-9edf8094-671f-4360-9f9a-ed388495c6e5')
 
 # Change these as needed
@@ -64,20 +84,8 @@ r2 = requests.get(f'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-acc
 # Get amount of games played in each role for past 100 games (includes ARAM / very inaccurate)
 matches = r2.json()["matches"]
 roles_tally = count_roles(matches)
-
-# TODO String formatting for percentages, because we enjoy fun
-pct_supp = round(roles_tally["SUPPORT"] / len(matches) * 100,2)
-pct_adc = round(roles_tally["ADC"] / len(matches) * 100,2)
-pct_mid = round(roles_tally["MID"] / len(matches) * 100,2)
-pct_jung = round(roles_tally["JUNGLE"] / len(matches) * 100,2)
-pct_top = round(roles_tally["SUPPORT"] / len(matches) * 100,2)
-
 print('Percentage of games played by role in past 100 (including ARAM):')
-print(f'Top: {pct_top}')
-print(f'Jungle: {pct_jung}')
-print(f'Mid: {pct_mid}')
-print(f'ADC: {pct_adc}')
-print(f'Support: {pct_supp}')
+print(role_percentages_string(roles_tally))
 
 ####################################################################### dont use
 # Create lists without ARAM games and another with only Clash
@@ -91,20 +99,8 @@ r5 = requests.get(f'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-acc
 not_aram_games = r5.json()['matches']
 # Get amount of games played per role (no ARAM)
 roles_tally = count_roles(not_aram_games)
-
-# TODO String formatting for percentages, because we enjoy fun
-pct_supp = round(roles_tally["DUO_SUPPORT"] / len(not_aram_games) * 100,2)
-pct_adc = round(roles_tally["DUO"] / len(not_aram_games) * 100,2)
-pct_mid = round(roles_tally["MID"] / len(not_aram_games) * 100,2)
-pct_jung = round(roles_tally["JUNGLE"] / len(not_aram_games) * 100,2)
-pct_top = round(roles_tally["TOP"] / len(not_aram_games) * 100,2)
-
 print('Percentage of games played by role in past 100 (not ARAM):')
-print(f'Top: {pct_top}')
-print(f'Jungle: {pct_jung}')
-print(f'Mid: {pct_mid}')
-print(f'ADC: {pct_adc}')
-print(f'Support: {pct_supp}')
+print(role_percentages_string(roles_tally))
 
 ############################################################################
 ################### CLASH ANALYSIS #########################################
@@ -123,11 +119,7 @@ roles, lanes, game_ids = [], [], []
 roles_tally = count_roles(clash_hist)
 
 print(f"Last 10 Clash games played for {summoner_name}:")
-print(f"Top: {roles_tally['TOP']}")
-print(f"Jungle: {roles_tally['JUNGLE']}")
-print(f"Mid: {roles_tally['MID']}")
-print(f"ADC: {roles_tally['DUO_CARRY']}")
-print(f"Support: {roles_tally['DUO_SUPPORT']}")
+print(role_percentages_string(roles_tally))
     
 ####################### SPECIFIC MATCH DETAILS ####################
 game_id = 3665709273
